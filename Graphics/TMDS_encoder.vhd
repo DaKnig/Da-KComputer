@@ -25,7 +25,7 @@ begin  -- architecture behave
   -- type   : sequential
   -- inputs : bit_clock, rst, data_in
   -- outputs: data_reduced_transitions
-  process (bit_clock, rst) is
+  process (bit_clock, rst)
     signal bit_counter : integer range 0 to 9;
   begin  -- process
     if rst = '0' then                   -- asynchronous reset (active low)
@@ -35,6 +35,6 @@ begin  -- architecture behave
         shift_left(data_in,1) xor data_in;
     end if;
   end process;
-  data_reduced_transitions
+--  data_reduced_transitions
 
 end architecture behave;
