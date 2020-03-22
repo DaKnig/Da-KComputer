@@ -62,7 +62,7 @@ begin  -- architecture behave
   -- purpose: buffer input and count ones
   -- type   : sequential
   -- inputs : pixel_clock_inner, rst, data_in
-  -- outputs: data_st_1
+  -- outputs: data_st_1, use_xnor_st_1
   process (pixel_clock_inner) is
   begin  -- process
     if rising_edge(pixel_clock_inner) then  -- rising clock edge
@@ -103,7 +103,7 @@ begin  -- architecture behave
 ---------------------------------------------------------------------------------------
 
   new_bias <= to_integer(ones_count(xord_data_st_2(7 downto 0))) - 4;
-  
+
   -- purpose: messing with the bias stuff, generating the final symbol
   -- type   : combinational
   -- inputs : pixel_clock_inner, xord_data_st_2

@@ -42,25 +42,21 @@ begin  -- architecture behave
       pixel_clock        => pixel_clock);
 
   
-  rst <= '0', '1' after 10 ps;
+  rst <= '1', '0' after 10 ns;
 
   bit_clock <= not bit_clock after T_CLK/2;
 
   process (pixel_clock, rst) is
   begin  -- process
-    if rst = '0' then                   -- asynchronous reset (active low)
+    if rst = '1' then                   -- asynchronous reset (active low)
       counter <= 0;
     elsif rising_edge(pixel_clock) then  -- rising clock edge
       counter <= counter + 1;
-
-      case counter is
-        when 0 => data_in <= x"33";
-        when others => data_in <= x"00";
-      end case;
-
     end if;
   end process;
 
-
+  data_in <= x"99" when counter = 0 else
+             x"33" when counter = 1 else
+             x"00";
 
 end architecture behave;

@@ -15,16 +15,19 @@ package body useful_functions is
   function ones_count (
     data : unsigned)
     return unsigned is
-    variable no1s : unsigned(2 downto 0) := "000";
+    variable no1s : integer range 0 to 5 := 0;
   begin  -- function ones_count
 
     if data'length < 5 then
-      report to_string(std_logic_vector(data));
-      for d in 0 to data'length loop
-        no1s := no1s + data(d downto d);
+--      report to_string(std_logic_vector(data));
+      no1s := 0;
+      for d in data'range loop
+        if data(d) = '1' then
+          no1s := no1s + 1;
+        end if;
       end loop;  -- d
 
-      return no1s;
+      return to_unsigned(no1s, 3);
 
     else
 
