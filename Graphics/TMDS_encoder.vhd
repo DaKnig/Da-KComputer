@@ -34,6 +34,8 @@ architecture behave of TMDS_encoder is
   signal use_xnor_st_1     : boolean;
 
   signal new_bias          : integer range 4 downto -4; -- bias of xord_data_st_2
+
+  signal debug_ones_count  : unsigned(2 downto 0);
 begin  -- architecture behave
 
   -- purpose: generate pixel clock
@@ -67,11 +69,12 @@ begin  -- architecture behave
   begin  -- process
     if rising_edge(pixel_clock_inner) then  -- rising clock edge
 
-      if rst = '0' then                   -- asynchronous reset (active low)
+      if rst = '1' then                   -- asynchronous reset (active low)
         data_st_1 <= (others => '0');
       else
         data_st_1 <= data_in;
-        use_xnor_st_1 <= ones_count(data_in) > 4 or (ones_count(data_in) = 4 and data_in(0) = '0');        
+        debug_ones_count <= ones_count(data_in);
+        use_xnor_st_1 <= ones_count(data_in) > 4 or (ones_count(data_in) = 4 and data_in(0) = '0');
       end if;
 
     end if;

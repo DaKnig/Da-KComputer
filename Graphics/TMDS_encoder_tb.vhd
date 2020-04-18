@@ -55,8 +55,10 @@ begin  -- architecture behave
     end if;
   end process;
 
-  data_in <= x"99" when counter = 0 else
-             x"33" when counter = 1 else
+  data_in <= x"99" when counter = 0 else -- 4 high bits, lowest bit 1, xor
+             x"33" when counter = 1 else -- same
+             x"66" when counter = 2 else -- 4 high bits, lowest bit 0, xnor
+             x"20" when counter = 3 else -- 1 high bit, xor
              x"00";
 
 end architecture behave;
