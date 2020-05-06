@@ -4,7 +4,7 @@ OBJS :=  useful_functions.o TMDS_encoder.o TMDS_encoder_tb.o HDMI_encoder.o \
 all: graph
 
 graph: TMDS_encoder_tb
-	ghdl -r $< --vcd=clk_div.vcd --stop-time=1ms
+	ghdl -r $< --vcd=clk_div.vcd --stop-time=500ns
 
 TMDS_encoder_tb: $(OBJS)
 	ghdl -e --std=08 $@

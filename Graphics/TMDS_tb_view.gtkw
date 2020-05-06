@@ -1,0 +1,47 @@
+[*]
+[*] GTKWave Analyzer v3.3.102 (w)1999-2019 BSI
+[*] Tue May  5 12:02:40 2020
+[*]
+[dumpfile] "/home/dudeguy/prog/Project_DKC/Graphics/clk_div.vcd"
+[dumpfile_mtime] "Tue May  5 11:43:32 2020"
+[dumpfile_size] 14901493
+[savefile] "/home/dudeguy/prog/Project_DKC/Graphics/TMDS_tb_view.gtkw"
+[timestart] 0
+[size] 1362 729
+[pos] -1 -1
+*-26.000000 23400000 75800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tmds_encoder_tb.
+[treeopen] tmds_encoder_tb.tmds_encoder_instance.
+[sst_width] 230
+[signals_width] 242
+[sst_expanded] 1
+[sst_vpaned_height] 139
+@28
+tmds_encoder_tb.tmds_encoder_instance.bit_clk
+@421
+tmds_encoder_tb.tmds_encoder_instance.sync_counter
+@22
+tmds_encoder_tb.tmds_encoder_instance.data_in[7:0]
+@420
+tmds_encoder_tb.data_counter
+@200
+-st_1
+@22
+tmds_encoder_tb.tmds_encoder_instance.data_st_1[7:0]
+@28
+tmds_encoder_tb.tmds_encoder_instance.debug_ones_count[2:0]
+tmds_encoder_tb.tmds_encoder_instance.use_xnor_st_1
+@200
+-st_2
+@22
+tmds_encoder_tb.tmds_encoder_instance.xord_data_st_2[8:0]
+@420
+tmds_encoder_tb.tmds_encoder_instance.new_bias
+@200
+-st_3
+@22
+tmds_encoder_tb.tmds_encoder_instance.data_out[9:0]
+@420
+tmds_encoder_tb.tmds_encoder_instance.acc_bias
+[pattern_trace] 1
+[pattern_trace] 0

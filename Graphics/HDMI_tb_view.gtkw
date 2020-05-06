@@ -1,0 +1,36 @@
+[*]
+[*] GTKWave Analyzer v3.3.102 (w)1999-2019 BSI
+[*] Wed May  6 10:20:33 2020
+[*]
+[dumpfile] "/home/dudeguy/prog/Project_DKC/Graphics/clk_div.vcd"
+[dumpfile_mtime] "Wed May  6 10:20:04 2020"
+[dumpfile_size] 8916
+[savefile] "/home/dudeguy/prog/Project_DKC/Graphics/HDMI_tb_view.gtkw"
+[timestart] 0
+[size] 1362 729
+[pos] -1 -1
+*-25.000000 58500000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 230
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 189
+@28
+hdmi_encoder_tb.bit_clk
+@420
+hdmi_encoder_tb.counter
+hdmi_encoder_tb.sync_counter
+@28
+hdmi_encoder_tb.active
+@22
+hdmi_encoder_tb.red[7:0]
+hdmi_encoder_tb.blue[7:0]
+hdmi_encoder_tb.green[7:0]
+@28
+hdmi_encoder_tb.hotplug_detect
+hdmi_encoder_tb.hsync
+hdmi_encoder_tb.serial_green
+hdmi_encoder_tb.serial_red
+hdmi_encoder_tb.serial_blue
+hdmi_encoder_tb.vsync
+[pattern_trace] 1
+[pattern_trace] 0
