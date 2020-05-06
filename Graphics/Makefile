@@ -1,4 +1,5 @@
-OBJS :=  useful_functions.o TMDS_encoder.o TMDS_encoder_tb.o
+OBJS :=  useful_functions.o TMDS_encoder.o TMDS_encoder_tb.o HDMI_encoder.o \
+	HDMI_encoder_tb.o
 
 all: graph
 
@@ -7,12 +8,14 @@ graph: TMDS_encoder_tb
 
 TMDS_encoder_tb: $(OBJS)
 	ghdl -e --std=08 $@
+HDMI_encoder_tb: $(OBJS)
+	ghdl -e --std=08 $@
 %.o: %.vhd
 	ghdl -a --std=08 $<
 clean:
 	ghdl --clean
 	rm *.o *.vcd -rf
-TMDS_encoder.o: TMDS_encoder.vhd useful_functions.o 
+TMDS_encoder.o: TMDS_encoder.vhd useful_functions.o
 	ghdl -a --std=08 $<
 
 graph_show: graph

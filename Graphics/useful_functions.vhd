@@ -24,7 +24,7 @@ package body useful_functions is
       end if;
     end loop;  -- d
 
-    return to_unsigned(no1s, 3);
+    return to_unsigned(no1s, 4);
 
   end function ones_count;
 
