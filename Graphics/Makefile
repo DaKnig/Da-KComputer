@@ -3,6 +3,9 @@ OBJS :=  useful_functions.o TMDS_encoder.o TMDS_encoder_tb.o HDMI_encoder.o \
 
 TBS  := TMDS_encoder_tb HDMI_encoder_tb
 
+.SUFFIXES:
+.PHONY: clean graph_show
+
 all: graph
 
 graph: TMDS_encoder_tb
@@ -10,8 +13,10 @@ graph: TMDS_encoder_tb
 
 $(TBS) : $(OBJS)
 	ghdl -e --std=08 $@
+
 %.o: src/%.vhd
 	ghdl -a --std=08 $<
+
 clean:
 	ghdl --clean
 	rm *.o *.vcd -rf

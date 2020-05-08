@@ -6,7 +6,7 @@ library work;
 use work.useful_functions.all;
 
 entity TMDS_encoder is
-  
+
   port (
     data_in     : in  unsigned(7 downto 0);  -- parallel data in
                                              -- clocked at the pixel clock
@@ -18,7 +18,7 @@ entity TMDS_encoder is
                                   -- works
     sync_counter: in integer range 0 to 9; -- data changes after 9
     hsync,vsync : in std_logic;
-    active      : in std_logic);
+    active      : in boolean);
 
 end entity TMDS_encoder;
 
@@ -38,10 +38,25 @@ architecture behave of TMDS_encoder is
 
   signal debug_ones_count  : unsigned(3 downto 0);
 
-  signal TMDS_control_st_1 : unsigned(1 downto 0);
-  signal TMDS_control_st_2 : unsigned(1 downto 0);
-  signal TMDS_control_st_3 : unsigned(1 downto 0);
+  type TMDS_ctrl_sr_t is array (1 downto 0) of unsigned(1 downto 0);
+  signal TMDS_ctrl_sr : TMDS_ctrl_sr_t;
+
+  type bool_sr_t is array (1 downto 0) of boolean;
+  signal active_sr : bool_sr_t;
+
 begin  -- architecture behave
+
+  -- purpose: shifting all the relevant inputs across the shift registers
+  -- type   : combinational
+  -- inputs : bit_clk
+  -- outputs:
+  shift_reg_update: process (bit_clk) is
+  begin  -- process shift_reg_update
+    if rising_edge(bit_clk) and sync_counter = 9 then
+      TMDS_ctrl_sr <= TMDS_ctrl_sr(0 downto 0) & (vsync&hsync);
+      active_sr <= active_sr(0 downto 0) & (active);
+    end if;
+  end process shift_reg_update;
 
 ---------------------------------------------------------------------------------------
   -- purpose: buffer input and count ones
@@ -51,7 +66,7 @@ begin  -- architecture behave
   process (bit_clk) is
   begin  -- process
     if rising_edge(bit_clk) and sync_counter = 9 then
-      TMDS_control_st_1 <= vsync&hsync;
+
 
       data_st_1 <= data_in;
       debug_ones_count <= ones_count(data_in);
@@ -78,8 +93,6 @@ begin  -- architecture behave
   process (bit_clk) is
   begin  -- process
     if rising_edge(bit_clk) and sync_counter = 9 then
-      TMDS_control_st_2 <= TMDS_control_st_1;
-
       xord_data_st_2 <= xord_data;
     end if;
   end process;
@@ -98,14 +111,15 @@ begin  -- architecture behave
       if rst = '1' then
         data_out <= (others => '0');
         acc_bias <= 0;
-      elsif active = '0' then
-        case TMDS_control_st_2 is
+      elsif active_sr(1) = false then
+        case TMDS_ctrl_sr(1) is
           when "00" => data_out <= "1101010100";
           when "01" => data_out <= "0010101011";
           when "10" => data_out <= "0101010100";
           when "11" => data_out <= "1010101011";
           when others => null;
         end case;
+        acc_bias <= 0;
       elsif (acc_bias < 0) = (new_bias < 0) then
         data_out <= '1' & xord_data_st_2(8) & (not xord_data_st_2(7 downto 0));
         acc_bias <= acc_bias - new_bias;
@@ -115,5 +129,5 @@ begin  -- architecture behave
       end if;
     end if;
   end process;
-  
+
 end architecture behave;

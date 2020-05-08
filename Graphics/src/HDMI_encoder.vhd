@@ -11,7 +11,7 @@ entity HDMI_encoder is
     bit_clk        : in  std_logic;       -- the bit clock, 250 MHz for VGA
     sync_counter   : in  integer range 0 to 9; -- the bit to send out
     hsync, vsync   : in  std_logic;
-    active         : in  std_logic; -- '1' for data, '0' for control
+    active         : in  boolean; -- true for data, false for control
     hotplug_detect : in  std_logic;
     serial_red     : out std_logic;  -- red to be sent in serial. at bit_clk.
     serial_blue    : out std_logic;
@@ -34,7 +34,7 @@ architecture behave of HDMI_encoder is
 
     sync_counter: in integer range 0 to 9; -- data changes after 9
     hsync,vsync : in std_logic;
-    active      : in std_logic);
+    active      : in boolean);
   end component TMDS_encoder;
 
   signal red_TMDS, blue_TMDS, green_TMDS : unsigned(9 downto 0);

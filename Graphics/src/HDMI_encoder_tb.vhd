@@ -16,7 +16,7 @@ architecture HDMI_encoder_tb of HDMI_encoder_tb is
     bit_clk        : in  std_logic;       -- the bit clock, 250 MHz for VGA
     sync_counter   : in  integer range 0 to 9;
     hsync, vsync   : in  std_logic;
-    active         : in  std_logic; -- '1' for data, '0' for control
+    active         : in  boolean;    -- true for data, false for control
     hotplug_detect : in  std_logic;
     serial_red     : out std_logic;  -- red to be sent in serial. at bit_clk.
     serial_blue    : out std_logic;
@@ -28,7 +28,7 @@ architecture HDMI_encoder_tb of HDMI_encoder_tb is
 
   signal sync_counter   : integer range 0 to 9 := 0;
   signal hsync, vsync   : std_logic;
-  signal active         : std_logic := '1';
+  signal active         : boolean   := true;
   signal hotplug_detect : std_logic := '1';
 
   type pixel is array (2 downto 0) of unsigned (7 downto 0);

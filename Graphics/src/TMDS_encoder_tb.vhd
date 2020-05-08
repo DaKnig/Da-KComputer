@@ -20,7 +20,7 @@ architecture behave of TMDS_encoder_tb is
       bit_clk     : in std_logic;
       sync_counter: in integer range 0 to 9; -- data changes after 9
       hsync,vsync : in std_logic;
-      active      : in std_logic);  -- clock enable - logic happens when its on
+      active      : in boolean);  -- clock enable - logic happens when its on
   end component TMDS_encoder;
 
   signal data_in     : unsigned(7 downto 0);
@@ -31,7 +31,7 @@ architecture behave of TMDS_encoder_tb is
   signal counter     : integer range 0 to 9;
   signal data_counter: integer := 0;
   signal hsync,vsync : std_logic;
-  signal active      : std_logic;
+  signal active      : boolean;
 
   type ROM is array (integer range <>) of unsigned(7 downto 0);
   signal inputs : ROM(0 to 100) := (
@@ -53,7 +53,6 @@ begin  -- architecture behave
   rst <= '1', '0' after 10 ns;
 
   bit_clk <= not bit_clk after T_CLK/2;
-
 
   process (bit_clk, rst) is
   begin  -- process
