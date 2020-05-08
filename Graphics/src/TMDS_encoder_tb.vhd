@@ -35,7 +35,13 @@ architecture behave of TMDS_encoder_tb is
 
   type ROM is array (integer range <>) of unsigned(7 downto 0);
   signal inputs : ROM(0 to 100) := (
-    x"99",x"33",x"66",x"20",x"ff", others=>x"00");
+    x"99",x"33",x"66",x"20",x"ff",(others=>'X'),(others=>'U'), others=>x"00");
+  -- X at bit0 for vsync, U at bit1 for hsync
+
+  type bool_arr is array (integer range<>) of boolean;
+  signal active_status : bool_arr(0 to 100) := (
+    false,false,false,false,true, true,         true,          others=>true);
+
 begin  -- architecture behave
 
   TMDS_encoder_instance: TMDS_encoder
@@ -63,6 +69,11 @@ begin  -- architecture behave
       data_counter <= data_counter + 1 when counter = 9 else data_counter;
     end if;
   end process;
+
+  vsync <= '1' when data_in(0) = 'X' else '0';
+  hsync <= '1' when data_in(1) = 'U' else '0';
+
+  active <= active_status(data_counter);
 
   data_in <= inputs(data_counter);
 
