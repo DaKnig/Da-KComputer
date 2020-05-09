@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity HDMI_encoder is
-  
+
   port (
     red            : in  unsigned (7 downto 0);  -- red component
     blue           : in  unsigned (7 downto 0);  -- blue component
@@ -22,30 +22,27 @@ end entity HDMI_encoder;
 architecture behave of HDMI_encoder is
 
   component TMDS_encoder is
-  
-  port (
-    data_in     : in  unsigned(7 downto 0);  -- serial data in
-                                             -- clocked at the pixel clock
-    data_out    : out unsigned(9 downto 0);  -- serial data out
-                                             -- clocked at 10x pixel clock
-    rst         : in  std_logic;          -- reset the state of the encoder,
-                                          -- used for synch or something
-    bit_clk     : in std_logic;           -- 10x pixel clock
 
-    sync_counter: in integer range 0 to 9; -- data changes after 9
-    hsync,vsync : in std_logic;
-    active      : in boolean);
+    port (
+      data_in     : in  unsigned(7 downto 0);  -- serial data in
+                                               -- clocked at the pixel clock
+      data_out    : out unsigned(9 downto 0);  -- serial data out
+                                               -- clocked at 10x pixel clock
+      rst         : in  std_logic;          -- reset the state of the encoder
+                                            -- used for synch or something
+      bit_clk     : in std_logic;           -- 10x pixel clock
+
+      sync_counter: in integer range 0 to 9; -- data changes after 9
+      hsync,vsync : in std_logic;
+      active      : in boolean);
   end component TMDS_encoder;
 
   signal red_TMDS, blue_TMDS, green_TMDS : unsigned(9 downto 0);
                                         -- parallel TMDS data
   signal rst_TMDS     : std_logic;
-  signal tmds_clk_en  : std_logic := '0';
 
-  signal TMDS_2b10b_control : unsigned(9 downto 0);
-  signal TMDS_control : std_logic_vector(1 downto 0);
 begin  -- architecture behave
-  
+
   process (bit_clk) is
   begin  -- process
     if rising_edge(bit_clk) then
@@ -55,7 +52,7 @@ begin  -- architecture behave
     end if;
   end process;
 
-
+  rst_TMDS <= not hotplug_detect; -- do nothing when hotplug is 0
 
 
 
