@@ -1,8 +1,9 @@
-OBJS := vga_consts.o useful_functions.o TMDS_encoder.o HDMI_encoder.o\
-	VGA_signal_generator.o\
-	TMDS_encoder_tb.o HDMI_encoder_tb.o VGA_signal_generator_tb.o
+TBS  := TMDS_encoder_tb HDMI_encoder_tb VGA_signal_generator_tb \
+	top_level_video_test_tb
 
-TBS  := TMDS_encoder_tb HDMI_encoder_tb VGA_signal_generator_tb
+OBJS := vga_consts.o useful_functions.o TMDS_encoder.o HDMI_encoder.o\
+	VGA_signal_generator.o top_level_video_test.o\
+	$(TBS:=.o)
 
 .SUFFIXES:
 .PHONY: clean graph_show
