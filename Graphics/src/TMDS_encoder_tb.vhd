@@ -16,7 +16,7 @@ architecture behave of TMDS_encoder_tb is
                                                -- clocked at the pixel clock
       data_out    : out unsigned(9 downto 0);  -- serial data out
                                                -- clocked at 10x pixel clock
-      rst         : in  std_logic;  -- reset the state of the encoder, used for
+      rst         : in  std_logic;  -- synchronize encoder
       bit_clk     : in std_logic;
       sync_counter: in integer range 0 to 9; -- data changes after 9
       hsync,vsync : in std_logic;

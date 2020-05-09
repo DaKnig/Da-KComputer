@@ -1,7 +1,8 @@
-OBJS :=  useful_functions.o TMDS_encoder.o TMDS_encoder_tb.o HDMI_encoder.o \
-	HDMI_encoder_tb.o
+OBJS := vga_consts.o useful_functions.o TMDS_encoder.o HDMI_encoder.o\
+	VGA_signal_generator.o\
+	TMDS_encoder_tb.o HDMI_encoder_tb.o VGA_signal_generator_tb.o
 
-TBS  := TMDS_encoder_tb HDMI_encoder_tb
+TBS  := TMDS_encoder_tb HDMI_encoder_tb VGA_signal_generator_tb
 
 .SUFFIXES:
 .PHONY: clean graph_show
@@ -9,7 +10,7 @@ TBS  := TMDS_encoder_tb HDMI_encoder_tb
 all: graph
 
 graph: TMDS_encoder_tb
-	ghdl -r $< --vcd=clk_div.vcd --stop-time=500ns
+	ghdl -r $< --vcd=$<.vcd --stop-time=500ns
 
 $(TBS) : $(OBJS)
 	ghdl -e --std=08 $@
