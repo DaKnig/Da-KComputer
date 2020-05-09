@@ -23,17 +23,20 @@ architecture behave of VGA_signal_generator is
   signal effect1, effect2 : unsigned(9 downto 0);
 
   signal sync_counter_inner : integer range 0 to 9;
+  signal active_inner       : boolean;
 
 begin  -- architecture behave
 
-  active <= h_cnt < visible_x and v_cnt < visible_y;
+  active_inner <= h_cnt < visible_x and v_cnt < visible_y;
+
+  active <= active_inner;
   sync_counter <= sync_counter_inner;
 
   hsync <= '1' when h_cnt < hsync_end and h_cnt >= hsync_start else '0';
   vsync <= '1' when v_cnt < vsync_end and v_cnt >= vsync_start else '0';
 
-  effect1 <= to_unsigned (h_cnt, 10) when active else (others => '0');
-  effect2 <= to_unsigned (v_cnt, 10) when active else (others => '0');
+  effect1 <= to_unsigned (h_cnt, 10) when active_inner else (others => '0');
+  effect2 <= to_unsigned (v_cnt, 10) when active_inner else (others => '0');
 
   red <=   effect1(9 downto 2) and effect2(7 downto 0);
   blue <=  (effect1(9 downto 2) xor effect1(7 downto 0)) or effect2(8 downto 1);
