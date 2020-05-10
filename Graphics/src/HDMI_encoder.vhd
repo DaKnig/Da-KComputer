@@ -56,7 +56,7 @@ begin  -- architecture behave
 
 
 
-  red_TMDS_unit : TMDS_encoder
+  blue_TMDS_unit : TMDS_encoder
     port map (
       data_in      => red,
       data_out     => red_TMDS,
@@ -67,26 +67,26 @@ begin  -- architecture behave
       vsync        => vsync,
       active       => active);
 
-  blue_TMDS_unit: TMDS_encoder
+  green_TMDS_unit: TMDS_encoder
     port map (
       data_in      => blue,
       data_out     => blue_TMDS,
       rst          => rst_TMDS,
       bit_clk      => bit_clk,
       sync_counter => sync_counter,
-      hsync        => hsync,
-      vsync        => vsync,
+      hsync        => '0',
+      vsync        => '0',
       active       => active);
 
-  green_TMDS_unit: TMDS_encoder
+  red_TMDS_unit: TMDS_encoder
     port map (
       data_in      => green,
       data_out     => green_TMDS,
       rst          => rst_TMDS,
       bit_clk      => bit_clk,
       sync_counter => sync_counter,
-      hsync        => hsync,
-      vsync        => vsync,
+      hsync        => '0',
+      vsync        => '0',
       active       => active);
 
 end architecture behave;

@@ -2,11 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library UNISIM; -- not sure what this is for. maybe the output buffer.
+use UNISIM.VComponents.all;
+
 entity top_level_video_test is
 
   port (
-    bit_clk                               : in  std_logic;
-    serial_red, serial_blue, serial_green : out std_logic);
+    bit_clk     : in  std_logic;
+    video_out_p : out std_logic_vector(2 downto 0);
+    video_out_n : out std_logic_vector(2 downto 0));
 
 end entity top_level_video_test;
 
@@ -46,11 +50,25 @@ architecture test of top_level_video_test is
   signal active           : boolean;
   signal hotplug_detect   : std_logic;
 
+  signal video_out        : std_logic_vector(2 downto 0);
+  -- serial. 0,1,2: blue, green, red
+
 begin  -- architecture test
 
   rst            <= '0';
   hotplug_detect <= '1';                -- for now. ("monitor is connected")
 
+  Diff_Output_Stage : for i in 0 to 2 generate
+    OutputBuffer : OBUFDS
+      generic map (
+        IOSTANDARD => "TMDS_33")
+      port map (
+        O  => video_out_p(i),
+        OB => video_out_n(i),
+        I  => video_out(i));
+  end generate Diff_Output_Stage;
+
+  
   data_generator : component VGA_signal_generator
     port map (
       bit_clk      => bit_clk,
@@ -74,8 +92,8 @@ begin  -- architecture test
       vsync          => vsync,
       active         => active,
       hotplug_detect => hotplug_detect,
-      serial_red     => serial_red,
-      serial_blue    => serial_blue,
-      serial_green   => serial_green);
+      serial_red     => video_out(2),
+      serial_blue    => video_out(0),
+      serial_green   => video_out(1));
 
 end architecture test;
