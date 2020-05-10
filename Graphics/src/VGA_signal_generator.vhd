@@ -38,9 +38,16 @@ begin  -- architecture behave
   effect1 <= to_unsigned (h_cnt, 10) when active_inner else (others => '0');
   effect2 <= to_unsigned (v_cnt, 10) when active_inner else (others => '0');
 
-  red <=   effect1(9 downto 2) and effect2(7 downto 0);
-  blue <=  (effect1(9 downto 2) xor effect1(7 downto 0)) or effect2(8 downto 1);
-  green <= x"00";
+  generate_colors: process (bit_clk) is
+  begin  -- process generate_colors
+    if rising_edge(bit_clk) then  -- rising clock edge
+      red <=   effect1(9 downto 2) and effect2(7 downto 0);
+      blue <=  (effect1(9 downto 2) xor effect1(7 downto 0))
+               or effect2(8 downto 1);
+      green <= x"00";
+
+    end if;
+  end process generate_colors;
 
   process (bit_clk) is
   begin  -- process
