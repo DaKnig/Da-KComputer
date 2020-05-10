@@ -44,6 +44,8 @@ architecture behave of TMDS_encoder is
   type bool_sr_t is array (1 downto 0) of boolean;
   signal active_sr : bool_sr_t;
 
+  signal ones_count_data_in : unsigned(3 downto 0);
+
 begin  -- architecture behave
 
   -- purpose: shifting all the relevant inputs across the shift registers
@@ -65,12 +67,15 @@ begin  -- architecture behave
   -- outputs: data_st_1, use_xnor_st_1
   process (bit_clk) is
   begin  -- process
-    if rising_edge(bit_clk) and sync_counter = 9 then
+    if rising_edge(bit_clk) then
+      ones_count_data_in <= ones_count(data_in);
+      if sync_counter = 9 then
 
-
-      data_st_1 <= data_in;
-      debug_ones_count <= ones_count(data_in);
-      use_xnor_st_1 <= ones_count(data_in) > 4 or (ones_count(data_in) = 4 and data_in(0) = '0');
+        data_st_1 <= data_in;
+        debug_ones_count <= ones_count_data_in;
+        use_xnor_st_1 <= ones_count_data_in > 4
+                         or (ones_count_data_in = 4 and data_in(0) = '0');
+      end if;
     end if;
   end process;
 ---------------------------------------------------------------------------------------
