@@ -91,9 +91,21 @@ begin  -- architecture behave
   -- inputs : bit_clk, xord_data
   -- outputs: xord_data_st_2
   process (bit_clk) is
+    variable xord_data_v : unsigned(8 downto 0) := 9x"000";
   begin  -- process
     if rising_edge(bit_clk) and sync_counter = 9 then
-      xord_data_st_2 <= xord_data;
+      xord_data_v(0) := data_st_1(0);
+      for i in 1 to 7 loop
+        if use_xnor_st_1 then
+          xord_data_v(i) := data_st_1(i) xnor xord_data_v(i-1);
+        else
+          xord_data_v(i) := data_st_1(i) xor  xord_data_v(i-1);
+        end if;
+      end loop;  -- i
+      xord_data_v(8) := '0' when use_xnor_st_1 else '1';
+      xord_data_st_2 <= xord_data_v;
+
+      assert xord_data = xord_data_v;
     end if;
   end process;
 
