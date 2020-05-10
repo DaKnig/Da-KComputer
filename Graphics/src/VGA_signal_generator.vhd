@@ -25,6 +25,11 @@ architecture behave of VGA_signal_generator is
   signal sync_counter_inner : integer range 0 to 9;
   signal active_inner       : boolean;
 
+  signal zero_v_cnt_next_clock : boolean;
+  -- if set, v_cnt would zero out next pixel clock
+  signal update_v_cnt_next_clock : boolean;
+  -- if set, v_cnt would update next pixel clock
+
 begin  -- architecture behave
 
   active_inner <= h_cnt < visible_x and v_cnt < visible_y;
@@ -55,18 +60,21 @@ begin  -- architecture behave
       if rst = '1' then
         h_cnt <= h_frame-1;
         v_cnt <= v_frame-1;
-        sync_counter_inner <= 9; -- because next clock it's going to change
+        sync_counter_inner <= 0;
       elsif sync_counter_inner < 9 then
         sync_counter_inner <= sync_counter_inner+1;
       else -- sync_counter = 9
         sync_counter_inner <= 0;
 
         h_cnt <= 0 when h_cnt = h_frame-1 else h_cnt+1;
-        if h_cnt = h_frame-1 then
-          v_cnt <= 0 when (h_cnt = h_frame-1 and v_cnt = v_frame-1)
-                   else v_cnt+1;
+
+        if update_v_cnt_next_clock then
+          v_cnt <= 0 when zero_v_cnt_next_clock else v_cnt+1; --- new logic
         end if;
       end if;
+
+      zero_v_cnt_next_clock <= h_cnt = h_frame-1 and v_cnt = v_frame-1;
+      update_v_cnt_next_clock <= h_cnt = h_frame-1;
 
     end if;
   end process;
