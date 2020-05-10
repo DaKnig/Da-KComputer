@@ -44,20 +44,23 @@ begin  -- architecture behave
 
   process (bit_clk) is
   begin  -- process
-    if rst = '1' then
-      h_cnt <= h_frame-1;
-      v_cnt <= v_frame-1;
-      sync_counter_inner <= 9; -- because next clock it's going to change
-    elsif sync_counter_inner < 9 then
-      sync_counter_inner <= sync_counter_inner+1;
-    else -- sync_counter = 9
-      sync_counter_inner <= 0;
+    if rising_edge(bit_clk) then
+      if rst = '1' then
+        h_cnt <= h_frame-1;
+        v_cnt <= v_frame-1;
+        sync_counter_inner <= 9; -- because next clock it's going to change
+      elsif sync_counter_inner < 9 then
+        sync_counter_inner <= sync_counter_inner+1;
+      else -- sync_counter = 9
+        sync_counter_inner <= 0;
 
-      h_cnt <= 0 when h_cnt = h_frame-1 else h_cnt+1;
-      if h_cnt = h_frame-1 then
-        v_cnt <= 0 when (h_cnt = h_frame-1 and v_cnt = v_frame-1)
-                 else v_cnt+1;
+        h_cnt <= 0 when h_cnt = h_frame-1 else h_cnt+1;
+        if h_cnt = h_frame-1 then
+          v_cnt <= 0 when (h_cnt = h_frame-1 and v_cnt = v_frame-1)
+                   else v_cnt+1;
+        end if;
       end if;
+
     end if;
   end process;
 
