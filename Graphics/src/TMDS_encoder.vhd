@@ -14,9 +14,7 @@ entity TMDS_encoder is
 
     rst         : in  std_logic;  -- reset the state of the encoder, used for
                                   -- synch or something
-    bit_clk     : in std_logic;   -- logic works at that clock, when clock en
-                                  -- works
-    sync_counter: in integer range 0 to 9; -- data changes after 9
+    pix_clk     : in std_logic;   -- pixel clock, 25MHz
     hsync,vsync : in std_logic;
     active      : in boolean);
 
@@ -44,17 +42,15 @@ architecture behave of TMDS_encoder is
   type bool_sr_t is array (1 downto 0) of boolean;
   signal active_sr : bool_sr_t;
 
-  signal ones_count_data_in : unsigned(3 downto 0);
-
 begin  -- architecture behave
 
   -- purpose: shifting all the relevant inputs across the shift registers
   -- type   : combinational
   -- inputs : bit_clk
   -- outputs:
-  shift_reg_update: process (bit_clk) is
+  shift_reg_update: process (pix_clk) is
   begin  -- process shift_reg_update
-    if rising_edge(bit_clk) and sync_counter = 9 then
+    if rising_edge(pix_clk) then
       TMDS_ctrl_sr <= TMDS_ctrl_sr(0 downto 0) & (vsync&hsync);
       active_sr <= active_sr(0 downto 0) & (active);
     end if;
@@ -65,17 +61,13 @@ begin  -- architecture behave
   -- type   : sequential
   -- inputs : bit_clk, data_in
   -- outputs: data_st_1, use_xnor_st_1
-  process (bit_clk) is
+  process (pix_clk) is
   begin  -- process
-    if rising_edge(bit_clk) then
-      ones_count_data_in <= ones_count(data_in);
-      if sync_counter = 9 then
-
-        data_st_1 <= data_in;
-        debug_ones_count <= ones_count_data_in;
-        use_xnor_st_1 <= ones_count_data_in > 4
-                         or (ones_count_data_in = 4 and data_in(0) = '0');
-      end if;
+    if rising_edge(pix_clk) then
+      data_st_1 <= data_in;
+      debug_ones_count <= ones_count(data_in);
+      use_xnor_st_1 <= ones_count(data_in) > 4
+                       or (ones_count(data_in) = 4 and data_in(0) = '0');
     end if;
   end process;
 ---------------------------------------------------------------------------------------
@@ -95,10 +87,10 @@ begin  -- architecture behave
   -- type   : combinational
   -- inputs : bit_clk, xord_data
   -- outputs: xord_data_st_2
-  process (bit_clk) is
+  process (pix_clk) is
     variable xord_data_v : unsigned(8 downto 0) := 9x"000";
   begin  -- process
-    if rising_edge(bit_clk) and sync_counter = 9 then
+    if rising_edge(pix_clk) then
       xord_data_v(0) := data_st_1(0);
       for i in 1 to 7 loop
         if use_xnor_st_1 then
@@ -122,13 +114,13 @@ begin  -- architecture behave
   -- type   : combinational
   -- inputs : bit_clk, xord_data_st_2
   -- outputs: data_out
-  process (bit_clk) is
+  process (pix_clk) is
   begin  -- process
-    if rising_edge(bit_clk) and sync_counter = 9 then
+    if rising_edge(pix_clk) then
       if rst = '1' then
         data_out <= (others => '0');
         acc_bias <= 0;
-      elsif active_sr(1) = false then
+      elsif not active_sr(1) then
         case TMDS_ctrl_sr(1) is
           when "00" => data_out <= "1101010100";
           when "01" => data_out <= "0010101011";

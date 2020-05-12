@@ -7,26 +7,29 @@ end entity top_level_video_test_tb;
 
 architecture test of top_level_video_test_tb is
 
-  component top_level_video_test is
+  constant T_CLK : time := 8 ns;
 
+  component top_level_video_test is
     port (
-      bit_clk                               : in std_logic;
-      serial_red, serial_blue, serial_green : out std_logic);
+      driving_clk          : in  std_logic;  -- 125MHz, for generating bit_clk
+      video_out_p          : out std_logic_vector(2 downto 0);
+      video_out_n          : out std_logic_vector(2 downto 0);
+      bit_clk_n, bit_clk_p : out std_logic);
 
   end component top_level_video_test;
 
-  signal bit_clk : std_logic := '0';
-  signal serial_red, serial_blue, serial_green : std_logic;
+  signal driving_clk : std_logic := '0';
+  signal video_out_p : std_logic_vector(2 downto 0);
+  signal bit_clk_p   : std_logic;
 
 begin  -- architecture test
 
-  bit_clk <= not bit_clk after 1 ns;
+  driving_clk <= not driving_clk after T_CLK/2;
 
-  video_thing: component top_level_video_test
+  video_thing : component top_level_video_test
     port map (
-      bit_clk      => bit_clk,
-      serial_red   => serial_red,
-      serial_blue  => serial_blue,
-      serial_green => serial_green);
+      driving_clk => driving_clk,
+      video_out_p => video_out_p,
+      bit_clk_p   => bit_clk_p);
 
 end architecture test;

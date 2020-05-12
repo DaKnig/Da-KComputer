@@ -66,10 +66,19 @@ begin  -- architecture behave
       else -- sync_counter = 9
         sync_counter_inner <= 0;
 
-        h_cnt <= 0 when h_cnt = h_frame-1 else h_cnt+1;
+        if h_cnt = h_frame-1 then
+          h_cnt <= 0;
+        else
+          h_cnt <= h_cnt+1;
+        end if;
 
         if update_v_cnt_next_clock then
-          v_cnt <= 0 when zero_v_cnt_next_clock else v_cnt+1; --- new logic
+          if zero_v_cnt_next_clock then
+            
+            v_cnt <= 0;
+          else 
+            v_cnt <= v_cnt+1; --- new logic
+          end if;
         end if;
       end if;
 
