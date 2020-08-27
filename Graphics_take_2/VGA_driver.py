@@ -76,9 +76,9 @@ class VGA_driver(Elaboratable):
 
         vga = platform.request("vga")
         m.d.comb += [
-            vga.r.eq(vgen.red  [-4:]),
-            vga.b.eq(vgen.blue [-4:]),
-            vga.g.eq(vgen.green[-4:]),
+            vga.r.eq(vgen.color.red  [-4:]),
+            vga.b.eq(vgen.color.blue [-4:]),
+            vga.g.eq(vgen.color.green[-4:]),
             vga.hs.eq(vgen.hsync),
             vga.vs.eq(vgen.vsync),
             ]

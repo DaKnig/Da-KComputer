@@ -34,6 +34,8 @@ class VGA_mode:
 
 VGA_mode = VGA_mode()
 
+from Color import Color
+
 class VGA_signal_gen(Elaboratable):
     def __init__(self, vga_mode=VGA_mode, delay=1):
         """
@@ -53,9 +55,7 @@ class VGA_signal_gen(Elaboratable):
         self.hsync  = Signal(reset = 1)
         self.vsync  = Signal(reset = 1)
         self.blank  = Signal(reset = 0)
-        self.red    = Signal(unsigned(8))
-        self.green  = Signal(unsigned(8))
-        self.blue   = Signal(unsigned(8))
+        self.color  = Color(4)
         self.hcount = Signal(
             range(self.vga_mode.h_whole_line),  reset = 0)
         self.vcount = Signal(
@@ -63,8 +63,8 @@ class VGA_signal_gen(Elaboratable):
 
     def ports(self):
         return [# outputs
-                self.hsync, self.vsync, self.blank, self.red, self.green,
-                self.blue, self.hcount, self.vcount]
+                self.hsync, self.vsync, self.blank, self.hcount,
+                self.vcount]
 
 
     def elaborate(self, platform):
@@ -77,6 +77,7 @@ class VGA_signal_gen(Elaboratable):
         comb += [
             self.hcount.eq(hcount),
             self.vcount.eq(vcount)]
+        red, green, blue = self.color.as_list()
 
 
         v = self.vga_mode
@@ -105,17 +106,17 @@ class VGA_signal_gen(Elaboratable):
         with m.If((vcount >= v.v_visible_area) |
                   (hcount >= v.h_visible_area)):
             sync += [
-                self.blue.eq(0),
-                self.green.eq(0),
-                self.red.eq(0)
+                blue.eq(0),
+                green.eq(0),
+                red.eq(0)
             ]
 
             sync += self.blank.eq(1)
         with m.Else():
             sync += [
-                self.blue.eq(hcount),
-                self.green.eq(hcount+vcount),
-                self.red.eq(vcount)
+                blue.eq(hcount),
+                green.eq(hcount+vcount),
+                red.eq(vcount)
             ]
 
             sync += self.blank.eq(0)

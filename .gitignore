@@ -4,3 +4,6 @@
 *_tb
 *.cf
 */__pycache__
+*/build
+*/vivad*.jou
+*/vivad*.log
