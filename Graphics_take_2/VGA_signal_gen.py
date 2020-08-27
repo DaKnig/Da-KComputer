@@ -4,7 +4,6 @@ this is a simple VGA signal generator, including VGA timing generator and all
 """
 
 from nmigen.back import verilog
-
 from nmigen import *
 
 all = ["VGA_signal_gen"]
@@ -37,13 +36,13 @@ VGA_mode = VGA_mode()
 from Color import Color
 
 class VGA_signal_gen(Elaboratable):
-    def __init__(self, vga_mode=VGA_mode, delay=1):
+    def __init__(self, vga_mode=VGA_mode):
         """
-        outputs:
-          [hv]sync - 0 when sync, 1 otherwise
+        inputs:
           blank - 0 when video active, 1 otherwise
-          red,green,blue - values in range(16,240)
           [hv]count - pixel number currently produced
+        outputs:
+          color - color to display
         parameters:
           vga_mode- a dict as described above
           delay- delay between [hv]count and VGA signal- [hv]sync, blank
@@ -51,20 +50,21 @@ class VGA_signal_gen(Elaboratable):
         """
         # parameters
         self.vga_mode = VGA_mode
-        # outputs
-        self.hsync  = Signal(reset = 1)
-        self.vsync  = Signal(reset = 1)
-        self.blank  = Signal(reset = 0)
-        self.color  = Color(4)
+        self.delay  = 1 ## outputs one clock after x,y
+        #inputs
+        self.blank  = Signal()
         self.hcount = Signal(
-            range(self.vga_mode.h_whole_line),  reset = 0)
+            range(self.vga_mode.h_whole_line))
         self.vcount = Signal(
-            range(self.vga_mode.v_whole_frame), reset = 0)
+            range(self.vga_mode.v_whole_frame))
+        #outputs
+        self.color  = Color(4)
 
     def ports(self):
         return [# outputs
-                self.hsync, self.vsync, self.blank, self.hcount,
-                self.vcount]
+                self.color.red, self.color.green, self.color.blue,
+                # inputs
+                self.blank, self.hcount, self.vcount]
 
 
     def elaborate(self, platform):
@@ -72,81 +72,63 @@ class VGA_signal_gen(Elaboratable):
 
         comb, sync = m.d.comb, m.d.sync
 
-        hcount = Signal(self.hcount.shape())
-        vcount = Signal(self.vcount.shape())
-        comb += [
-            self.hcount.eq(hcount),
-            self.vcount.eq(vcount)]
         red, green, blue = self.color.as_list()
-
 
         v = self.vga_mode
 
-        # counter logic
-        with m.If(hcount != v.h_whole_line-1):
-            sync += hcount.eq(hcount+1)
-        with m.Else():
-            sync += hcount.eq(0)
-            with m.If(vcount != v.v_whole_frame-1):
-                sync += vcount.eq(vcount+1)
-            with m.Else():
-                sync += vcount.eq(0)
-
-        # control logic
-        with m.If((hcount >= v.h_sync_start) & (hcount < v.h_sync_end)):
-            sync += self.hsync.eq(0)
-        with m.Else():
-            sync += self.hsync.eq(1)
-
-        with m.If((vcount >= v.v_sync_start) & (vcount < v.v_sync_end)):
-            sync += self.vsync.eq(0)
-        with m.Else():
-            sync += self.vsync.eq(1)
-
-        with m.If((vcount >= v.v_visible_area) |
-                  (hcount >= v.h_visible_area)):
+        with m.If((self.vcount >= v.v_visible_area) |
+                  (self.hcount >= v.h_visible_area)):
             sync += [
                 blue.eq(0),
                 green.eq(0),
                 red.eq(0)
             ]
 
-            sync += self.blank.eq(1)
         with m.Else():
             sync += [
-                blue.eq(hcount),
-                green.eq(hcount+vcount),
-                red.eq(vcount)
+                blue.eq(self.hcount),
+                green.eq(self.hcount + self.vcount),
+                red.eq(self.vcount)
             ]
-
-            sync += self.blank.eq(0)
 
         return m
 
-
-
-
+from VGA_timing_gen import *
 
 if __name__ == "__main__":
     import sys
     if "--test" in sys.argv or "-t" in sys.argv:
+        from VGA_timing_gen import *
 
+        frames_to_sym=2
+        if "--frames" in sys.argv:
+            frames_to_sym = sys.argv[sys.argv.index("--frames")+1]
+            frames_to_sym = float (frames_to_sym)
         from nmigen.back.pysim import Simulator, Delay, Settle
 
         m = Module()
 
         m.submodules.vgagen = vgagen = VGA_signal_gen()
+        m.submodules.timegen = timegen = VGA_timing_gen(
+            vga_mode = VGA_mode,
+            delay= vgagen.delay)
+
+        m.d.comb += [ # port map
+            vgagen.hcount.eq(timegen.hcount),
+            vgagen.vcount.eq(timegen.vcount),
+            vgagen.blank.eq(timegen.blank)
+            ]
 
         sim = Simulator(m)
         sim.add_clock(25e-9, domain="sync")
-        
+
         def process():
             yield Passive()
 
         # sim.add_sync_process(process, domain = "sync")
         with sim.write_vcd("test.vcd", "test.gtkw",
-                           traces=vgagen.ports()):
-            sim.run_until(2/60, run_passive=True)
+                           traces= timegen.ports() + vgagen.ports() ):
+            sim.run_until(frames_to_sym/60, run_passive=True)
 
     elif "--verilog" in sys.argv :
         top = VGA_signal_gen()

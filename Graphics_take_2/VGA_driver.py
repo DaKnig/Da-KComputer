@@ -50,12 +50,15 @@ class PLL(Elaboratable):
 
 
 from VGA_signal_gen import *
+from VGA_timing_gen import *
 
 class VGA_driver(Elaboratable):
     def elaborate(self, platform):
         m=Module()
         m.submodules += Instance("PS7", a_keep="TRUE") # some vivado shit
         m.submodules.vgen = vgen = DomainRenamer("cd40")(VGA_signal_gen())
+        m.submodules.tgen = tgen = DomainRenamer("cd40")(
+            VGA_timing_gen(vga_mode = vgen.vga_mode))
 
         m.submodules.clkgen = clkgen = PLL(platform.request("clk125"))
 
@@ -76,13 +79,18 @@ class VGA_driver(Elaboratable):
 
         vga = platform.request("vga")
         m.d.comb += [
+            vgen.hcount.eq(tgen.hcount),
+            vgen.vcount.eq(tgen.vcount),
+            vgen.blank .eq(tgen.blank ),
+
+
             vga.r.eq(vgen.color.red  [-4:]),
             vga.b.eq(vgen.color.blue [-4:]),
             vga.g.eq(vgen.color.green[-4:]),
-            vga.hs.eq(vgen.hsync),
-            vga.vs.eq(vgen.vsync),
+            vga.hs.eq(tgen.hsync),
+            vga.vs.eq(tgen.vsync),
             ]
-            
+
         display_switch = platform.request("switch",0) # SW0
         with m.If(display_switch):
             m.d.comb += vga.eq(0)
