@@ -3,3 +3,4 @@
 *.vcd
 *_tb
 *.cf
+*/__pycache__

@@ -20,7 +20,7 @@ class ArtyZ720Platform(Xilinx7SeriesPlatform):
             Pins("H16", dir="i"), Clock(125e6), Attrs(IOSTANDARD="LVCMOS33")),
 
         *SwitchResources(
-            pins="M20 M19",
+            pins="M20 M19",                                     # SW0 SW1
             attrs=Attrs(IOSTANDARD="LVCMOS33")),
 
         RGBLEDResource(0,
@@ -31,7 +31,7 @@ class ArtyZ720Platform(Xilinx7SeriesPlatform):
             attrs=Attrs(IOSTANDARD="LVCMOS33")),
 
         *LEDResources(
-            pins="R14 P14 N16 M14",
+            pins="R14 P14 N16 M14",                             # LD0-LD3
             attrs=Attrs(IOSTANDARD="LVCMOS33")),
 
         *ButtonResources(
@@ -71,7 +71,7 @@ class ArtyZ720Platform(Xilinx7SeriesPlatform):
     ]
     connectors = [
         Connector("pmod", 0, "Y18 Y19 Y16 Y17 - - U18 U19 W18 W19 - -"),  # JA
-        Connector("pmod", 1, "Y14 W14 T10 T11 - - W16 V16 W13 V12 - -"),  # JB
+        Connector("pmod", 1, "W14 Y14 T11 T10 - - V16 W16 V12 W13 - -"),  # JB
 
         Connector("ck_io", 0, {
             # Outer Digital Header
@@ -179,12 +179,12 @@ class ArtyZ720Platform(Xilinx7SeriesPlatform):
 
             temp2_filename="/tmp/"+str(uuid4())+bitstream_filename[-4:]
             copyfile(bitstream_filename, temp2_filename)
-            
+
             subprocess.run(
                 [expanduser("~/vivado_running_dir/vivado")]+
                 "-mode batch -source program_fpga.tcl -tclargs".split() +
                 [temp2_filename], check=True)
-            
+
 
 
 if __name__ == "__main__":
