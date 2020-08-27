@@ -14,6 +14,11 @@ from nmigen import *
 
 def TMDS_encode(data: int, inverted: bool = False):
     # does not perform the last flipping step.
+    if data > 239:
+        data=239
+    if data < 16:
+        data=16
+
     ones = 0
     for i in bin(data)[2:]:
         ones += int(i)
@@ -68,7 +73,17 @@ def TMDS3(pixel,m):
     return encoded_pixel
 
 class minimal_hdmi_symbols(Elaboratable):
-    def __init__(self):
+    def __init__(self, hsync_invert:bool=False, vsync_invert:bool=False):
+        """
+        vga -> hdmi converter.
+        inputs and generics:
+        [hv]sync_invert are for inverting the sync signals compared to the VGA side as some modes require that.
+            if True, sync=1 would be considered as active sync.
+        red,blue,green are raw VGA colors. this module only works with 8 bits per channel.
+        blank : 1 when screen is blank, 0 when video data is active
+        outputs:
+        c0,c1,c2- gbr respectively, HDMI encoded.
+        """
         # inputs
         self.hsync = Signal()
         self.vsync = Signal()
@@ -76,6 +91,8 @@ class minimal_hdmi_symbols(Elaboratable):
         self.red   = Signal(unsigned(8))
         self.green = Signal(unsigned(8))
         self.blue  = Signal(unsigned(8))
+        self.hsync_invert = hsync_invert
+        self.vsync_invert = vsync_invert
         # outputs
         self.c0    = Signal(unsigned(10))
         self.c1    = Signal(unsigned(10))
@@ -84,21 +101,34 @@ class minimal_hdmi_symbols(Elaboratable):
         # internal signals
         m = Module()
 
+        processed_hsync = Signal()
+        processed_vsync = Signal()
+        
+        m.d.comb += [ # invert when need be
+            processed_hsync.eq(self.hsync if not self.hsync_invert else ~self.hsync),
+            processed_vsync.eq(self.vsync if not self.vsync_invert else ~self.vsync)
+        ]
+
         symbol_queue = Array([Signal(5,reset_less=True) for _ in range(11)])
         symbols = Signal(30,reset_less=True)
-        last_blank = Signal(reset_less=True)
-        last_vsync = Signal(reset_less=True)
-        last_hsync = Signal(reset_less=True)
+        last_blank = Signal(reset=1) # last was not blank or sync
+        last_vsync = Signal(reset=1)
+        last_hsync = Signal(reset=1)
 
-        data_island_armed = Signal(reset_less=True)
-        data_island_index = Signal(unsigned(6),reset_less=True)
+        data_island_armed = Signal(reset=0)
+        data_island_index = Signal(unsigned(6),reset=0b11111)
 
-        color_queue = Array([Signal(30, reset_less=True)] +
-                            [Signal(24, reset_less=True) for _ in range(len(symbol_queue)-1)])
+        color_queue = Array([Signal(24, reset_less=True) for _ in range(len(symbol_queue))])
           # the idea is I apply TMDS between last 2 layers - so between layer 1 and 0
 
         current_symbol = Signal(unsigned(5),reset_less=True)
         current_color  = Signal(30,reset_less=True)
+
+
+        clocks_since_last_vsync = Signal(unsigned(32)) # debug
+        clocks_since_last_hsync = Signal(unsigned(32))
+        clocks_since_last_blank = Signal(unsigned(32))
+
         # code
         m.d.comb += [
             self.c0.eq(symbols[20:30]),
@@ -170,21 +200,22 @@ class minimal_hdmi_symbols(Elaboratable):
                                       init=[hdmi_control_symbols_d[i] for i in range(32)])
 
         m.submodules.rdport_hdmi_ctrl_syms = rdport = hdmi_control_symbols.read_port()
-        m.d.comb += rdport.addr.eq(current_symbol[:5])
+        m.d.comb += rdport.addr.eq(current_symbol)
 
-        # with m.If(current_symbol[:5] != 0b00001): # secret bgr symbol
-        #     m.d.sync += symbols.eq(rdport.data)
-        # with m.Else():
-        #     m.d.sync += symbols.eq(current_color)
-        m.d.sync += symbols.eq(rdport.data) ## testing this instead of the complex code above. ignore color_queue logic for now.
 
-        m.d.sync += [
-            Cat(*color_queue).eq(Cat(color_queue[1:], Cat(self.red,self.green,self.blue))),
-            color_queue[0].eq(TMDS3(color_queue[1], m)) # apply TMDS in a single step
-        ]
+        m.d.sync += symbols.eq(rdport.data)
+
+        # m.d.sync += Cat(color_queue).eq(Cat(color_queue[1:],self.red,self.green,self.blue))
+        color_queue_next = Cat(color_queue[1:],self.red,self.green,self.blue)
+        m.d.sync += Cat(*color_queue).eq(color_queue_next)
+        assert (len (color_queue_next) == len(Cat(*color_queue)))
+
+ #       with m.If(current_symbol < 8): ### THIS FUCKS UP THE THING. REMOVE TO TEST OR W/E
+#            m.d.sync += symbols.eq(TMDS3(current_color,m))
+
         with m.If(self.blank == 0):
-# Are we being asked to send video data? If so we need to send a peramble
-            r,g,b = self.red[7], self.green[7], self.blue[7]
+            # Are we being asked to send video data? If so we need to send a peramble
+            r,g,b = self.red[1], self.green[1], self.blue[1]
             with m.If(last_blank):
 
                 m.d.sync += [
@@ -224,7 +255,8 @@ class minimal_hdmi_symbols(Elaboratable):
                 # But that won't be a problem for us, we will have the rest of the vertical
                 # Blanking interval
             ]
-            data_island_control_symbols_l += [0b010_1_0]*(64-len(data_island_control_symbols_l))
+            data_island_control_symbols_l += [0b010 <<2 | (self.vsync_invert <<1) | (not self.hsync_invert)] * \
+                (64-len(data_island_control_symbols_l))###
                 # we know that all 64 symbols fit within the hblank, so V&H = 1_0
             assert(len(data_island_control_symbols_l)==64) # just to see if its true
 
@@ -236,7 +268,7 @@ class minimal_hdmi_symbols(Elaboratable):
 
             m.d.sync += Cat(*symbol_queue).eq(Cat(*symbol_queue[1:]))
             with m.If(data_island_index == 0b111111): # if packet is finished, send hsync, vsync.
-                m.d.sync += symbol_queue[-1].eq(Cat(self.hsync, self.vsync, C(0b010,3)))
+                m.d.sync += symbol_queue[-1].eq(Cat(processed_hsync, processed_vsync, C(0b010,3)))
             with m.Else(): # when in the packet, send the data according to the packet stuff.
 #                self.dat_r.eq(rdport.data)
                 m.d.sync += symbol_queue[-1].eq(rdport.data)
@@ -264,6 +296,12 @@ class minimal_hdmi_symbols(Elaboratable):
             last_hsync.eq(self.hsync),
             last_vsync.eq(self.vsync)
         ]
+        m.d.sync += [ # [vh]sync is active low
+            # this is one clock late
+            clocks_since_last_vsync.eq(Mux((self.vsync==C(1)) & (last_vsync==C(0,1)), 0, 1+clocks_since_last_vsync)),
+            clocks_since_last_hsync.eq(Mux((self.hsync==C(1)) & (last_hsync==C(0,1)), 0, 1+clocks_since_last_hsync)),
+            clocks_since_last_blank.eq(Mux((self.blank==C(1)) & (last_blank==C(0,1)), 0, 1+clocks_since_last_blank)),            
+        ]
 
         return m
 
@@ -278,7 +316,7 @@ if __name__ == "__main__":
 
         pass
 
-    top = minimal_hdmi_symbols()
+    top = minimal_hdmi_symbols(hsync_invert=True, vsync_invert=True)
     with open("minimal_hdmi_symbols.v", "w") as f:
         f.write(verilog.convert(top, name = "minimal_hdmi_symbols", ports=[
             #inputs
