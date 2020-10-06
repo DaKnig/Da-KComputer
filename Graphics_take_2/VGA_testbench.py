@@ -60,37 +60,38 @@ def test_vga(vga_mode, hsync, vsync, color):
 
     # wait for vsync to be inactive
     while True:
-#        vs = yield vsync
- #       if vs==1:
-        hs = yield hsync
-        if hs==1:
+#        hs = yield hsync # use this for less accurate, faster detection
+ #       if hs==1:
+        vs = yield vsync
+        if vs==1:
             break
         yield
         counter += 1
     # wait for active vsync
-    #print("vsync 1 detected at",counter)
-    print("hsync 1 detected at",counter)
-    
-    while True:
-        hs = yield hsync
-        if hs==0:
+    print("vsync 1 detected at",counter)
+    #print("hsync 1 detected at",counter)
 
+    while True:
+  #      hs = yield hsync # same as above comment
+   #     if hs==0:
+        vs = yield vsync
+        if vs==0:
             break
         yield
         counter += 1
     # wair for picture
-    #print(f"vsync at counter={counter}")
-    print(f"hsync at counter={counter}")
+    print(f"vsync at counter={counter}")
+    #print(f"hsync at counter={counter}")
 
     clocks_till_frame = vga_mode.h_whole_line * \
         (vga_mode.v_sync_pulse + vga_mode.v_back_porch)
     for _ in range(clocks_till_frame):
         yield
         counter += 1
-    breakpoint()
-    
+
     print(f"starting drawing frame at {counter}")
-    # pdb.set_trace()
+    # pdb.set_trace() # use this on older python3 interpreters
+    breakpoint()
     correction = 255/(-1 + (1<<len(color.blue)))
     for v in range(vga_mode.v_visible_area):
         for h in range(vga_mode.h_visible_area):
@@ -138,7 +139,7 @@ def main():
         def wrapper():
             yield from process
         return wrapper
-    
+
     def status_print():
         yield Passive()
         global counter
@@ -166,5 +167,5 @@ if __name__=="__main__":
         print("\n counter =",counter)
  #       print("exception was:",e)
 #        raise e
-    
+
 #    pdb.set_trace()
