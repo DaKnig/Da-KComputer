@@ -49,7 +49,7 @@ class VGA_signal_gen(Elaboratable):
           and Color.
         """
         # parameters
-        self.vga_mode = VGA_mode
+        self.vga_mode = vga_mode
         self.delay  = 1 ## outputs one clock after x,y
         #inputs
         self.blank  = Signal()
