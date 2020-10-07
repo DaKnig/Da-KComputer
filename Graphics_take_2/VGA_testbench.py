@@ -92,13 +92,13 @@ def test_vga(vga_mode, hsync, vsync, color):
     print(f"starting drawing frame at {counter}")
     # pdb.set_trace() # use this on older python3 interpreters
     breakpoint()
-    correction = 255/(-1 + (1<<len(color.blue)))
+    correction = (8-len(color.blue))
     for v in range(vga_mode.v_visible_area):
         for h in range(vga_mode.h_visible_area):
             x = yield color.blue
             x += (yield color.green) << 8
             x += (yield color.red) << 16
-            s[h][v] = x * correction
+            s[h][v] = x << correction
             yield
             counter += 1
         for h in range(vga_mode.h_visible_area, vga_mode.h_whole_line):
